@@ -1,0 +1,229 @@
+---
+title: "Chord Diagram: Flow of Foreginers in Japan"
+author: "Chisato den Engelsen"
+date: '2018-05-07'
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen=999)
+
+## Packages I'm going to use
+library(swatches)  # I love show_palette function to preview my colours! 
+library(rvest) # so i can get table from wikipedia
+library(tidyverse)
+library(circlize)
+library(NipponMap)
+library(hrbrthemes)
+library(readxl)
+
+```
+
+
+
+## Before Diving into Chord Diagram...
+
+Japan has 47 prefectures.  I wanted to label the prefectures in English instead of Japanese.
+So I've decided to get data from Wikipedia entry.
+
+```{r data_prep}
+
+## I want Prefecture to have different colouring... 
+# 47 prefecture + 1 unknown. So I prepped 48 colours. 
+pref.colour <- c("#BA68C8", "#9C27B0", "#7B1FA2", "#7E57C2", "#5E35B1", "#4527A0", 
+                 "#7986CB", "#3F51B5", "#303F9F", "#42A5F5", "#1E88E5", "#1565C0", 
+                 "#4FC3F7", "#03A9F4", "#0288D1", "#26C6DA", "#00ACC1", "#00838F", 
+                 "#4DB6AC", "#009688", "#00796B", "#66BB6A", "#43A047", "#2E7D32", 
+                 "#AED581", "#8BC34A", "#689F38", "#D4E157", "#C0CA33", "#9E9D24", 
+                 "#FFF176", "#FFEB3B", "#FBC02D", "#FFCA28", "#FFB300", "#FF8F00", 
+                 "#FFB74D", "#FF9800", "#F57C00", "#FF7043", "#F4511E", "#D84315", 
+                 "#E57373", "#F44336", "#D32F2F", "#EC407A", "#D81B60", "#424242")
+# swatches package 
+show_palette(pref.colour)
+
+## Preview the colour on Japanese Map using NipponMap package!
+JapanPrefMap(col=pref.colour[1:47]) 
+
+###  Japan Prefecture Data Preps
+prefecture.table <- read_html("https://en.wikipedia.org/wiki/Prefectures_of_Japan") %>% 
+  html_nodes(xpath= '//*[@id="mw-content-text"]/div/table[4]') %>% html_table()
+## first list item is what I want.
+prefecture.table <-prefecture.table[[1]]
+
+## Arrange Table by ISO code so that it matches data
+prefecture.table <- prefecture.table %>% arrange(ISO)
+
+# prefecture.table$Prefecture I want 48 sectors. 
+prefs.en <- c(prefecture.table$Prefecture,"Unknown")
+## Just tidying it up.. 
+prefs.en <- trimws(gsub("(Kochi|Oita)","",prefs.en))
+
+
+prefecture.table$colour <- pref.colour[1:47]
+prefecture.table$EnglishName <- prefs.en[1:47]
+
+
+## 
+prefecture.table <- prefecture.table %>% group_by(Region) %>% 
+  mutate(sub.rank=row_number(ISO)) %>% ungroup() %>% 
+  mutate(Region.f = fct_inorder(Region), reg.rank=dense_rank(Region.f))
+
+## Just tidying up the column names so it's easy to reference!
+names(prefecture.table) <-make.names(names(prefecture.table))
+
+## Let's convert some characters into numric value
+prefecture.table$Population.<- as.numeric(gsub(",", "", prefecture.table$Population.))
+prefecture.table$Density.<- as.numeric(gsub(",", "", prefecture.table$Density.))
+prefecture.table$Area.<- as.numeric(gsub(",", "", prefecture.table$Area.))
+
+
+###  Side Tracked...
+
+prefecture.table %>% ggplot(aes(x=Area., y=Density.)) + 
+  geom_point(alpha=0.3, aes(size=Population., color=ISO)) + 
+  scale_color_manual(values=pref.colour[1:47], guide="none") + 
+  theme_ipsum_rc() + 
+  geom_text_repel(aes(label=paste0(Prefecture)), family = "Avenir") + 
+  scale_y_log10() + scale_x_log10() +
+  scale_size_area(max_size=30, guide="none") +
+  geom_rug(aes(color=ISO)) + 
+  labs(title="Density vs Area : Prefectures in Japan")
+
+
+```
+
+
+```{r sheetnames}
+
+sheet.name.2016.basic <- excel_sheets(path = "Data/2016_Basic_DB.xlsx")
+sheet.name.2016.nationality.od <- excel_sheets(path = "Data/2016_Nationality_OD.xlsx") 
+## 10 sheets total.  
+sheet.name.2016.nationality.od
+# AllNationality, Korea, Taiwan, HongKong, China, ASEAN, Europe, NorthAmerica, Oceania, Other
+
+sheet.name.2016.transport.od <- excel_sheets(path = "Data/2016_Transport_OD.xlsx")
+# 9 sheets total
+sheet.name.2016.transport.od 
+# All, Bus, Railroads, Taxi, Rental.Car, Other Passenger Cars, Domestic Flight, Other, Unknown
+
+
+sheet.data <- tibble(
+  sheet.path = c(rep("Data/2016_Nationality_OD.xlsx",10),rep("Data/2016_Transport_OD.xlsx",9)),
+  sheet.num = c(seq(1,10),seq(1,9)),
+  sheet.name = c(c("All Nationalities","Korea","Taiwan","Hong Kong","China",
+                 "ASEAN","Europe","North America","Oceania","Other"),
+                 c("All Transportation","Bus","Train","Taxi","Rental Car",
+                   "Other Vehicles","Domestic Flight","Others Transportation","Unknown")),
+  sheet.cat = c(rep("Nationality",10), rep("Transport",9))
+)
+
+```
+
+
+## Generation of PDFs
+
+
+```{r ff_OD_dataLoops}
+
+## Run Below to generate PDFs!
+for(i in 1:nrow(sheet.data)){
+  sheet1 <-readxl::read_excel(path= sheet.data$sheet.path[i], 
+                              sheet=sheet.data$sheet.num[i], skip=7, col_names=F)
+  m1 <- sheet1[4:51,4:51]
+  m1 <- m1 %>% transmute_all(as.numeric)
+  m1 <- as.matrix(m1)
+  
+  colnames(m1) <- prefs.en
+  rownames(m1) <- prefs.en
+  
+  #png(filename=paste0(sheet.data$sheet.cat[i],sheet.data$sheet.num[i],sheet.data$sheet.name[i],".png"), 
+      #width=2400, height=2400, res=200)
+  cairo_pdf(filename=paste0("Output/",sheet.data$sheet.cat[i],sheet.data$sheet.num[i],
+                            sheet.data$sheet.name[i],".pdf"), 
+            width=9, height=9, family="Avenir")
+  circos.clear()
+  par(mar=c(0,0,0,0), bg="#ffffff")
+  
+  circos.par(cell.padding=c(0,0), 
+             points.overflow.warning=FALSE, canvas.xlim=c(-1.5,1.5),
+             start.degree=90)
+  
+  chordDiagram(m1, grid.col=pref.colour, annotationTrack = "grid", transparency = 0.2, directional = 1)
+  title(main = list(sheet.data$sheet.name[i]), family="Avenir", line=-3, cex=10)
+  
+  # Add labels.
+  for(si in get.all.sector.index()) {
+    xlim = get.cell.meta.data("xlim", sector.index = si, track.index = 1)
+    ylim = get.cell.meta.data("ylim", sector.index = si, track.index = 1)
+    circos.text(mean(xlim), 2, si, facing = "clockwise", adj = c(0,0.1),
+                niceFacing = TRUE, cex = 0.5, sector.index = si, track.index = 1)
+    circos.axis(sector.index = si, labels.cex = 0.2)
+  }
+  dev.off()
+}
+
+```
+
+
+## I want to place 9 diagram on 1 page.
+
+```{r}
+def.par <- par(no.readonly = TRUE) # save default, for resetting...
+
+#cairo_pdf("Output/2016_Transport_OD_Multiples.pdf", width=18, height=18, family="Avenir")
+#cairo_pdf("Output/2016_Nationality_OD_Multiples.pdf", width=18, height=18, family="Avenir")
+#png("Output/2016_Nationality_OD_Multiples.png", width=3600,height=3600,res=300)
+png("Output/2016_Transport_OD_Multiples.png", width=3600,height=3600,res=300)
+layout(matrix(1:9, 3, 3))
+## Run Below to generate PDFs!
+## change to 2:10 or 11:
+#for(i in 2:10){
+for(i in 11:19){
+  sheet1 <-readxl::read_excel(path= sheet.data$sheet.path[i], 
+                              sheet=sheet.data$sheet.num[i], skip=7, col_names=F)
+  m1 <- sheet1[4:51,4:51]
+  m1 <- m1 %>% transmute_all(as.numeric)
+  m1 <- as.matrix(m1)
+  
+  colnames(m1) <- prefs.en
+  rownames(m1) <- prefs.en
+  
+  circos.clear()
+  #png(filename=paste0(sheet.data$sheet.cat[i],sheet.data$sheet.num[i],sheet.data$sheet.name[i],".png"), 
+      #width=2400, height=2400, res=200)
+  #cairo_pdf(filename=paste0("Output/",sheet.data$sheet.cat[i],sheet.data$sheet.num[i],
+   #                         sheet.data$sheet.name[i],".pdf"), 
+    #        width=9, height=9, family="Avenir")
+  
+  par(mar=c(0,0,0,0), bg="#ffffff")
+  
+  circos.par(cell.padding=c(0,0), 
+             points.overflow.warning=FALSE, canvas.xlim=c(-1.5,1.5),
+             start.degree=90)
+  
+  chordDiagram(m1, grid.col=pref.colour, annotationTrack = "grid", transparency = 0.2, directional = 1)
+  title(main = list(sheet.data$sheet.name[i]), family="Avenir", line=-3, cex=10)
+  
+  # Add labels.
+  for(si in get.all.sector.index()) {
+    xlim = get.cell.meta.data("xlim", sector.index = si, track.index = 1)
+    ylim = get.cell.meta.data("ylim", sector.index = si, track.index = 1)
+    circos.text(mean(xlim), 2, si, facing = "clockwise", adj = c(0,0.1),
+                niceFacing = TRUE, cex = 0.5, sector.index = si, track.index = 1)
+    circos.axis(sector.index = si, labels.cex = 0.2)
+  }
+  #dev.off()
+  circos.clear()
+}
+
+
+dev.off()
+
+
+par(def.par) ## reset to how it was so i don't plot 3 x 3 
+
+```
+
