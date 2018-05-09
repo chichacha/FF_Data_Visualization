@@ -23,7 +23,6 @@ library(readxl)
 ```
 
 
-
 ## Before Diving into Chord Diagram...
 
 Japan has 47 prefectures.  I wanted to label the prefectures in English instead of Japanese.
@@ -95,6 +94,7 @@ prefecture.table %>% ggplot(aes(x=Area., y=Density.)) +
 
 ```
 
+## Understanding Sheets in Excel File.
 
 ```{r sheetnames}
 
@@ -125,6 +125,7 @@ sheet.data <- tibble(
 
 ## Generation of PDFs
 
+Can't quite figure out how to make png or pdf file with optimal font sizes etc... 
 
 ```{r ff_OD_dataLoops}
 

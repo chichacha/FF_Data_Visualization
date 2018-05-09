@@ -1,6 +1,8 @@
 # FF_Data_Visualization
 Visualizing data set found on MLIT (Ministry of Land, Infrastructure, Transport and Tourism Japan) 
 
+![](Output/2016_Nationality_OD_Multiples.png)
+
 
 ### FF Data (Flow of Foreigners in Japan Data Set)
 Detail of Data Set can be found below (Site is written in Japanese)
