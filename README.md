@@ -1,6 +1,8 @@
 # FF_Data_Visualization
 Visualizing data set found on MLIT (Ministry of Land, Infrastructure, Transport and Tourism Japan) 
 
+** Practice using amazing R package called Circlize! (https://github.com/jokergoo/circlize)
+
 ![](Output/2016_Nationality_OD_Multiples.png)
 
 
