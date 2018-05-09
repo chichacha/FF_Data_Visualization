@@ -1,9 +1,15 @@
-# FF_Data_Visualization
+# FF Data Visualization
 Visualizing data set found on MLIT (Ministry of Land, Infrastructure, Transport and Tourism Japan) 
 
 ** Practice using amazing R package called Circlize! (https://github.com/jokergoo/circlize)
 
+#### Chord Diagram using 2016 Nationality OD Dataset. 
+
 ![](Output/2016_Nationality_OD_Multiples.png)
+
+#### Chord Diagram using 2016 Transport OD Dataset. 
+
+![](Output/2016_Transport_OD_Multiples.png)
 
 
 ### FF Data (Flow of Foreigners in Japan Data Set)
