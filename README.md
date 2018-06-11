@@ -28,4 +28,4 @@ OD suffix stands for "Origin Destination".
 
 
 # ChordDiagram of Travellers by different Transportation Method.
-[example](https://github.com/chichacha/FF_Data_Visualization/blob/master/Output/2016_Transport_OD_Multiples.png?raw=true)
+![example](https://github.com/chichacha/FF_Data_Visualization/blob/master/Output/2016_Transport_OD_Multiples.png?raw=true)
