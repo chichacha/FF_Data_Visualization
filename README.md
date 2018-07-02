@@ -14,7 +14,7 @@ Visualizing data set found on MLIT (Ministry of Land, Infrastructure, Transport 
 ### Prefecture Colouring....
 
 For the above chart, I currently used below colouring for each prefecture
-![](images/JapanPrefectureColouring.png)
+![](Images/JapanPrefectureColouring.png)
 
 
 
