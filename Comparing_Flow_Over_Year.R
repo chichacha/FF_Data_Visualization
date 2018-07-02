@@ -48,9 +48,9 @@ read_pref_od <- function(path,sheet,...) {
 travel.by.transport
 
 ### Read 3 Files.
-all.transport.2014 <- read_pref_od(path="Data/2014_Transport_OD.xlsx", sheet=7)
-all.transport.2015 <- read_pref_od(path="Data/2015_Transport_OD.xlsx", sheet=7)
-all.transport.2016 <- read_pref_od(path="Data/2016_Transport_OD.xlsx", sheet=7)
+all.transport.2014 <- read_pref_od(path="Data/2014_Transport_OD.xlsx", sheet=1)
+all.transport.2015 <- read_pref_od(path="Data/2015_Transport_OD.xlsx", sheet=1)
+all.transport.2016 <- read_pref_od(path="Data/2016_Transport_OD.xlsx", sheet=1)
 
 ### 
 all.transport <-bind_rows("2014" = all.transport.2014, 
@@ -75,11 +75,11 @@ pref.colour <- c("#BA68C8", "#9C27B0", "#7B1FA2", "#7E57C2", "#5E35B1", "#4527A0
                  "#FFB74D", "#FF9800", "#F57C00", "#FF7043", "#F4511E", "#D84315", 
                  "#E57373", "#F44336", "#D32F2F", "#EC407A", "#D81B60", "#424242")
 
-
+## Below will draw 3 charts
 
 for(i in 2014:2016){
   
-  png(filename=paste0("images/transport/domestic_airline_",i,".png"), width=2400, height=2400, res=200)
+  png(filename=paste0("images/transport/all_transport_",i,".png"), width=2400, height=2400, res=200)
       #width=2400, height=2400, res=200)
   
   chord.df <- all.transport %>% filter(year==i) %>% select(-year)

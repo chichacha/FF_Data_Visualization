@@ -11,6 +11,12 @@ Visualizing data set found on MLIT (Ministry of Land, Infrastructure, Transport 
 
 ![](Output/2016_Transport_OD_Multiples.png)
 
+### Prefecture Colouring....
+
+For the above chart, I currently used below colouring for each prefecture
+![](images/JapanPrefectureColouring.png)
+
+
 
 ### FF Data (Flow of Foreigners in Japan Data Set)
 Detail of Data Set can be found below (Site is written in Japanese)
